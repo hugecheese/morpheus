@@ -1,0 +1,15 @@
+[package]
+name = "morpheus"
+description = "WIP totally broken matrix client"
+version = "0.1.0"
+authors = ["Morpheus Contributors"]
+edition = "2018"
+license = "AGPL-3.0-only"
+readme = "README.md"
+keywords = ["matrix", "chat", "bot", "messaging", "morpheus"]
+repository = "https://github.com/hugecheese/morpheus"
+
+[dependencies]
+reqwest = { version = "0.10.0-alpha.1", features = ["json"] }
+tokio = "0.2.0-alpha.6"
+serde = { version = "1", features = ["derive"]}
