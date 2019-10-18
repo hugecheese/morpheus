@@ -8,6 +8,7 @@ license = "AGPL-3.0-only"
 readme = "README.md"
 keywords = ["matrix", "chat", "bot", "messaging", "morpheus"]
 repository = "https://github.com/hugecheese/morpheus"
+homepage = "https://github.com/hugecheese/morpheus"
 
 [dependencies]
 reqwest = { version = "0.10.0-alpha.1", features = ["json"] }
