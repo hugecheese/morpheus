@@ -14,6 +14,12 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
-mod events;
+mod encryption;
+mod event;
+mod message;
+mod notifs;
+mod room;
+mod sync;
 
-pub use self::events::Sync;
+// TODO: eventually remove all the deny_unknown_fields
+pub use self::sync::Sync;
