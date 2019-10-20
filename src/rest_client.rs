@@ -48,7 +48,11 @@ impl RestClient {
         self.request(Method::POST, url)
     }
 
-    pub async fn sync(&self) -> reqwest::Result<raw::Sync> {
-        self.get(endpoints::SYNC).await?.json().await
+    pub async fn sync(&self) -> crate::Result<raw::Sync> {
+        let b = self.get(endpoints::SYNC).await?.bytes().await?;
+        let obj: serde_json::Value = serde_json::from_slice(&b)?;
+        let pretty = serde_json::to_string_pretty(&obj)?;
+        std::fs::write("dump.json", &pretty)?;
+        Ok(serde_json::from_str(&pretty)?)
     }
 }

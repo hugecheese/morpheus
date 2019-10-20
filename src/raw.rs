@@ -119,13 +119,226 @@ pub struct Timeline {
 
 #[derive(Deserialize, Debug)]
 pub struct RoomEvent {
-    // TODO pub content: Object,
-    #[serde(rename = "type")] // TODO enum setup
-    pub type_str: String,
+    #[serde(flatten)]
+    pub content: RoomEventContent,
+    //#[serde(rename = "type")]
+    //pub type_str: String,
     pub event_id: String,
     pub sender: String,
     pub origin_server_ts: u64,
     pub unsigned: Option<UnsignedData>,
+}
+
+// TODO: move to seperate file
+// TODO: move to seperate file
+// TODO: move to seperate file
+#[derive(Deserialize, Debug)]
+#[serde(tag = "type", content = "content")]
+pub enum RoomEventContent {
+    #[serde(rename = "m.room.aliases")]
+    Aliases { aliases: Vec<String> },
+    #[serde(rename = "m.room.canonical_alias")]
+    CanonicalAlias { alias: String },
+    #[serde(rename = "m.room.create")]
+    Create {
+        creator: String,
+        #[serde(rename = "m.federate")]
+        federate: Option<bool>,
+        room_version: Option<String>,
+        predecessor: Option<PreviousRoom>,
+    },
+    #[serde(rename = "m.room.join_rules")]
+    JoinRules { join_rule: String },
+    #[serde(rename = "m.room.member")]
+    Member(EventContent),
+    #[serde(rename = "m.room.power_levels")]
+    PowerLevels {
+        ban: Option<u32>,
+        events: Option<HashMap<String, u32>>,
+        events_default: Option<u32>,
+        invite: Option<u32>,
+        kick: Option<u32>,
+        redact: Option<u32>,
+        state_default: Option<u32>,
+        users: Option<HashMap<String, u32>>,
+        users_default: Option<u32>,
+        notifications: Option<Notifications>,
+    },
+    #[serde(rename = "m.room.redaction")]
+    Redaction { reason: Option<String> },
+    #[serde(rename = "m.room.history_visibility")]
+    HistoryVisibility { history_visibility: String },
+    #[serde(rename = "m.room.guest_access")]
+    GuestAccess { guest_access: String },
+    #[serde(rename = "m.room.message")]
+    Message {
+        // TODO: redacted can be marked as m.room.message with an empty content
+        // TODO: Bug with synapse?
+        body: Option<String>,
+        //msgtype: Option<String>,
+        #[serde(flatten)]
+        payload: Option<MessagePayload>,
+    },
+    #[serde(rename = "m.room.encryption")]
+    Encryption {
+        algorithm: String,
+        rotation_period_ms: Option<u64>,
+        rotation_period_msgs: Option<u32>,
+    },
+    #[serde(rename = "m.room.encrypted")]
+    Encrypted {
+        #[serde(flatten)]
+        ciphertext: Ciphertext,
+        sender_key: String,
+        device_id: Option<String>,
+        session_id: Option<String>,
+    },
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(tag = "algorithm", content = "ciphertext")]
+pub enum Ciphertext {
+    #[serde(rename = "m.olm.v1.curve25519-aes-sha2")]
+    Olm(HashMap<String, CiphertextInfo>),
+    #[serde(rename = "m.megolm.v1.aes-sha2")]
+    Megolm(String),
+}
+
+#[derive(Deserialize, Debug)]
+pub struct CiphertextInfo {
+    body: String,
+    #[serde(rename = "type")]
+    olm_type: u64,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct TextPayload {
+    pub format: Option<String>,
+    pub formatted_body: Option<String>,
+}
+
+// TODO: move to seperate file
+// TODO: move to seperate file
+// TODO: move to seperate file
+#[derive(Deserialize, Debug)]
+#[serde(tag = "msgtype")]
+pub enum MessagePayload {
+    #[serde(rename = "m.text")]
+    Text(TextPayload),
+    #[serde(rename = "m.emote")]
+    Emote(TextPayload),
+    #[serde(rename = "m.notice")]
+    Notice,
+    #[serde(rename = "m.image")]
+    Image {
+        info: Option<ImageInfo>,
+        url: Option<String>,
+        file: Option<EncryptedFile>,
+    },
+    #[serde(rename = "m.file")]
+    File {
+        filename: Option<String>,
+        info: Option<FileInfo>,
+        url: Option<String>,
+        file: Option<EncryptedFile>,
+    },
+    #[serde(rename = "m.audio")]
+    Audio {
+        info: Option<AudioInfo>,
+        url: Option<String>,
+        file: Option<EncryptedFile>,
+    },
+    #[serde(rename = "m.location")]
+    Location {
+        geo_uri: String,
+        info: Option<LocationInfo>,
+    },
+    #[serde(rename = "m.video")]
+    Video {
+        info: Option<VideoInfo>,
+        url: Option<String>,
+        file: Option<EncryptedFile>,
+    },
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ImageInfo {
+    pub h: Option<u32>,
+    pub w: Option<u32>,
+    #[serde(flatten)]
+    pub file: Option<FileInfo>, // TODO: does this need to be Option?
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ThumbnailInfo {
+    pub h: Option<u32>,
+    pub w: Option<u32>,
+    pub mimetype: Option<String>,
+    pub size: Option<u64>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct FileInfo {
+    pub mimetype: Option<String>,
+    pub size: Option<u64>,
+    pub thumbnail_url: Option<String>,
+    pub thumbnail_file: Option<EncryptedFile>,
+    pub thumbnail_info: Option<ThumbnailInfo>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct AudioInfo {
+    duration: Option<u64>,
+    mimetype: Option<String>,
+    size: Option<u64>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct LocationInfo {
+    pub thumbnail_url: Option<String>,
+    pub thumbnail_file: Option<EncryptedFile>,
+    pub thumbnail_info: Option<ThumbnailInfo>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct EncryptedFile {
+    pub url: String,
+    pub key: JsonWebKey,
+    pub iv: String,
+    pub hashes: HashMap<String, String>,
+    pub v: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct JsonWebKey {
+    pub kty: String,
+    pub key_ops: Vec<String>,
+    pub alg: String,
+    pub k: String,
+    pub ext: bool,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct VideoInfo {
+    pub duration: Option<u64>,
+    pub h: Option<u64>,
+    pub w: Option<u64>,
+    pub mimetype: String,
+    pub size: Option<u64>,
+    pub thumbnail_url: Option<String>,
+    pub thumbnail_file: Option<EncryptedFile>,
+    pub thumbnail_info: Option<ThumbnailInfo>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct PreviousRoom {
+    pub room_id: String,
+    pub event_id: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Notifications {
+    pub room: u32,
 }
 
 #[derive(Deserialize, Debug)]

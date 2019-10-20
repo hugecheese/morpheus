@@ -17,3 +17,13 @@
 pub struct User {
     id: String,
 }
+
+impl User {
+    // TODO impl
+    fn kick(&self) {}
+
+    // TODO impl
+    fn ban(&self) {}
+
+    // TODO the rest of the goods hehe
+}
