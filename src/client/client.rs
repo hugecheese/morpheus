@@ -38,8 +38,10 @@ impl Client {
     }
 
     pub async fn run(&mut self) -> Result<()> {
-        let res = self.req.sync(&self.next_batch).await?;
-        //dbg!(res);
-        Ok(())
+        loop {
+            let res = self.req.sync(&self.next_batch).await?;
+            println!("{}", res.next_batch);
+            self.next_batch = res.next_batch;
+        }
     }
 }

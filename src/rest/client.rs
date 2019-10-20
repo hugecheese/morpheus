@@ -47,13 +47,14 @@ impl Client {
 
     // TODO: rewrite this function, it's gross omegalul
     pub async fn sync(&self, next_batch: &str) -> crate::Result<events::Sync> {
-        let b = self
-            .get(endpoints::SYNC)
-            .json(&format!(r#"{{"since":"{}"}}"#, next_batch))
-            .send()
-            .await?
-            .bytes()
-            .await?;
+        let url = if next_batch.is_empty() {
+            endpoints::SYNC.into()
+        } else {
+            format!("{}?since={}", endpoints::SYNC, next_batch)
+        };
+
+        println!("{}", url);
+        let b = self.get(&url).send().await?.bytes().await?;
 
         let obj: serde_json::Value = serde_json::from_slice(&b)?;
         let pretty = serde_json::to_string_pretty(&obj)?;
