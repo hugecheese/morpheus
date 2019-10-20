@@ -27,8 +27,6 @@ mod user;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-use client::Client;
-
 #[tokio::main]
 async fn main() -> Result<()> {
     let c = rest_client::RestClient::new(env!("MATRIX_TOKEN"));

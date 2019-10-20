@@ -17,6 +17,9 @@
 use serde::Deserialize;
 use std::collections::HashMap;
 
+// TODO: enable #[serde(deny_unknown_fields)] fields everywhere to test parse coverage
+// TODO: does everything need to be pub??
+
 #[derive(Deserialize, Debug)]
 pub struct Sync {
     pub next_batch: String,
@@ -121,8 +124,6 @@ pub struct Timeline {
 pub struct RoomEvent {
     #[serde(flatten)]
     pub content: RoomEventContent,
-    //#[serde(rename = "type")]
-    //pub type_str: String,
     pub event_id: String,
     pub sender: String,
     pub origin_server_ts: u64,
@@ -148,7 +149,7 @@ pub enum RoomEventContent {
         predecessor: Option<PreviousRoom>,
     },
     #[serde(rename = "m.room.join_rules")]
-    JoinRules { join_rule: String },
+    JoinRules { join_rule: JoinRule },
     #[serde(rename = "m.room.member")]
     Member(EventContent),
     #[serde(rename = "m.room.power_levels")]
@@ -167,13 +168,14 @@ pub enum RoomEventContent {
     #[serde(rename = "m.room.redaction")]
     Redaction { reason: Option<String> },
     #[serde(rename = "m.room.history_visibility")]
-    HistoryVisibility { history_visibility: String },
+    HistoryVisibility {
+        history_visibility: HistoryVisibility,
+    },
     #[serde(rename = "m.room.guest_access")]
-    GuestAccess { guest_access: String },
+    GuestAccess { guest_access: GuestAccess },
     #[serde(rename = "m.room.message")]
     Message {
-        // TODO: redacted can be marked as m.room.message with an empty content
-        // TODO: Bug with synapse?
+        // TODO: shouldn't have to be optional? it's Required in spec
         body: Option<String>,
         //msgtype: Option<String>,
         #[serde(flatten)]
@@ -185,6 +187,7 @@ pub enum RoomEventContent {
         rotation_period_ms: Option<u64>,
         rotation_period_msgs: Option<u32>,
     },
+    // TODO: other encryption events like m.room_key
     #[serde(rename = "m.room.encrypted")]
     Encrypted {
         #[serde(flatten)]
@@ -193,6 +196,31 @@ pub enum RoomEventContent {
         device_id: Option<String>,
         session_id: Option<String>,
     },
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum HistoryVisibility {
+    Invited,
+    Joined,
+    Shared,
+    WorldReadable,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum GuestAccess {
+    CanJoin,
+    Forbidden,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum JoinRule {
+    Public,
+    Knock,
+    Invite,
+    Private,
 }
 
 #[derive(Deserialize, Debug)]
@@ -360,9 +388,74 @@ pub struct AccountData {
 
 #[derive(Deserialize, Debug)]
 pub struct Event {
-    // TODO pub content: Object,
-    #[serde(rename = "type")] // TODO enum setup
-    pub type_str: String,
+    #[serde(flatten)]
+    pub content: OtherEventData,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(tag = "type", content = "content")]
+// TODO: actual enum name??
+pub enum OtherEventData {
+    #[serde(rename = "m.typing")]
+    Typing { user_ids: Vec<String> },
+    #[serde(rename = "m.accepted_terms")]
+    AcceptedTerms { accepted: Vec<String> },
+    #[serde(rename = "m.direct")]
+    Direct(HashMap<String, Vec<String>>),
+    #[serde(rename = "m.push_rules")]
+    PushRules { global: Option<Ruleset> },
+    #[serde(rename = "m.fully_read")]
+    FullyRead { event_id: String },
+    #[serde(rename = "m.receipt")]
+    Receipt(Option<HashMap<String, Receipts>>),
+    #[serde(rename = "m.room.redaction")]
+    Redaction { reason: Option<String> },
+
+    // TODO: remove dummies after event probing is complete
+    #[serde(rename = "im.vector.web.settings")]
+    _DUMMY1(serde_json::Value),
+    #[serde(rename = "im.vector.riot.breadcrumb_rooms")]
+    _DUMMY2(serde_json::Value),
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Receipts {
+    #[serde(rename = "m.read")]
+    pub read: Option<HashMap<String, Option<Receipt>>>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Receipt {
+    pub ts: Option<u64>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Ruleset {
+    pub content: Option<Vec<PushRule>>,
+    #[serde(rename = "override")]
+    pub overriden: Option<Vec<PushRule>>,
+    pub room: Option<Vec<PushRule>>,
+    pub sender: Option<Vec<PushRule>>,
+    pub underride: Option<Vec<PushRule>>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct PushRule {
+    // TODO: implementation of this stupid spec rule
+    pub actions: serde_json::Value,
+    pub default: bool,
+    pub enabled: bool,
+    pub rule_id: String,
+    pub conditions: Option<Vec<PushCondition>>,
+    pub pattern: Option<String>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct PushCondition {
+    pub kind: String,
+    pub key: Option<String>,
+    pub pattern: Option<String>,
+    pub is: Option<String>,
 }
 
 // TODO DIFFERENT FILE FOR THIS DATA
@@ -372,10 +465,20 @@ pub struct Event {
 pub struct EventContent {
     pub avatar_url: Option<String>,
     pub displayname: Option<String>,
-    pub membership: String, // TODO: enum?
+    pub membership: Membership,
     pub is_direct: Option<bool>,
     pub third_party_invite: Option<Invite>,
     pub unsigned: Option<UnsignedData>,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum Membership {
+    Invite,
+    Join,
+    Knock,
+    Leave,
+    Ban,
 }
 
 #[derive(Deserialize, Debug)]
@@ -392,7 +495,7 @@ pub struct ToDevice {
 #[derive(Deserialize, Debug)]
 pub struct ToDeviceEvent {
     pub content: Option<EventContent>,
-    #[serde(rename = "type")] // TODO enum setup
+    #[serde(rename = "type")]
     pub type_str: Option<String>,
     pub sender: Option<String>,
 }
