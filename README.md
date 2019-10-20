@@ -4,7 +4,7 @@ WIP completely broken client for Matrix.
 # Matrix Spec TODO
 - Fix `displayname` vs `display_name`
 - Make most booleans required (`false` is usually correct when field is absent)
-- Make more things required (servers will commonly serve empty things as `[]`/`{}` anyway). Another example, `m.typing.user_ids` sets the array to required, even if there may be no elements, but this is not done most of the time.
+- Make more things required (servers will commonly serve empty things as `[]`/`{}` anyway). Another example, `m.typing::user_ids` sets the array to required, even if there may be no elements, but this is not done most of the time.
 - Make `room_version` required
 - Question: why is the `state_key` one level back in room events?
 - From `join` to `join` == changing display name?? I feel like there is a more understanble way to present an event that changes someone's display name without some join-but-not-really-a-join solution.
@@ -18,7 +18,7 @@ WIP completely broken client for Matrix.
 - Are two different encryption algorithms needed? Complicates encrypted messages
 - Differentiate between signed/unsigned and 32/64 bits for integers
 - Explicitly mark `m.room.message.feedback` as deprecated
-- Specify all the enum variants for `RoomVersionsCapability.available`
+- Specify all the enum variants for `RoomVersionsCapability::available`
 - Why `m.room_key_request` instead of `m.room.key_request`? inconsistent with most events
 - Type names should either be PascalCase or have spaces between each word, not a mix of both
 - Make all type names 100% unambiguous: There is Event, EventContent (which isn't actually the content of the previous Event), unnamed-event-content (this time for the actual Event type), State, StateEvent (which IS the event for the State), RoomEvent, RoomEventContent, ToDevice, Event (for ToDevice only), etc. These names are inconsistent. Some of them have a `Content` suffix, others do not.
@@ -27,8 +27,8 @@ WIP completely broken client for Matrix.
 - Question: the `ToDevice` event will specify the `type`, but unlike most other events, the `EventContent` doesn't depend on any type. Does ToDevice need to specify the type? Or should the content be in a different format that varies based off the type?
 - Document `m.accepted_terms`
 - Specification of the fields on `m.direct` is incomplete/absent
-- Undocumented `m.push_rules.device`?
-- Why two possible types per field? `PushRule.actions` is weird to implement and seems to be lacking in documentation.
+- Undocumented `m.push_rules::device`?
+- Why two possible types per field? `PushRule::actions` is weird to implement and seems to be lacking in documentation.
 - Inconsistent specification of `m.receipt`. Normally, any maps of ids to objects are specified as `{string: object}`, but for `m.receipt`, we oddly specify the name of the key as the type of key (which is not the name). Unclear and inconsistent with all other map fields.
 - `m.receipt` overall has a very strange and non-obvious layout, and all the fields are optional for no apparent reason.
 - Inconsistent naming: `ts` vs `timestamp`
