@@ -16,15 +16,12 @@
  */
 use super::events;
 use crate::endpoints;
-use reqwest::Method;
-use std::future::Future;
+use reqwest::{Method, RequestBuilder};
 
 pub struct Client {
     auth: String,
     req: reqwest::Client,
 }
-
-pub type Resp = impl Future<Output = reqwest::Result<reqwest::Response>>;
 
 impl Client {
     pub fn new(token: &str) -> Client {
@@ -34,31 +31,43 @@ impl Client {
         }
     }
 
-    fn request(&self, method: Method, url: &str) -> Resp {
+    fn request(&self, method: Method, url: &str) -> RequestBuilder {
         self.req
             .request(method, url)
             .header("Authorization", &self.auth)
-            .send()
     }
 
-    fn get(&self, url: &str) -> Resp {
+    fn get(&self, url: &str) -> RequestBuilder {
         self.request(Method::GET, url)
     }
 
-    fn post(&self, url: &str) -> Resp {
+    fn post(&self, url: &str) -> RequestBuilder {
         self.request(Method::POST, url)
     }
 
-    pub async fn sync(&self) -> crate::Result<events::Sync> {
-        /*
-        let b = self.get(endpoints::SYNC).await?.bytes().await?;
+    // TODO: rewrite this function, it's gross omegalul
+    pub async fn sync(&self, next_batch: &str) -> crate::Result<events::Sync> {
+        let b = self
+            .get(endpoints::SYNC)
+            .json(&format!(r#"{{"since":"{}"}}"#, next_batch))
+            .send()
+            .await?
+            .bytes()
+            .await?;
+
         let obj: serde_json::Value = serde_json::from_slice(&b)?;
         let pretty = serde_json::to_string_pretty(&obj)?;
-        std::fs::write("dump.json", &pretty)?;
-        Ok(serde_json::from_str(&pretty)?)
-        */
-        Ok(serde_json::from_str(&std::fs::read_to_string(
-            "dump.json",
-        )?)?)
+        let res: crate::Result<events::Sync> = serde_json::from_str(&pretty)
+            .or_else(|err| Err(Box::new(err) as Box<dyn std::error::Error>));
+        match res {
+            Ok(val) => Ok(val),
+            Err(e) => {
+                let r: u64 = rand::random();
+                let filename = format!("{}.json", r);
+                println!("JSON ERROR: {}\n\nDUMPING FILE: {}", e, filename);
+                std::fs::write(&filename, &pretty)?;
+                Err(e)
+            }
+        }
     }
 }

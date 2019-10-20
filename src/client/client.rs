@@ -21,6 +21,7 @@ use crate::Result;
 pub struct Client {
     req: rest::Client,
     message_handlers: Vec<fn(Message)>,
+    next_batch: String,
 }
 
 impl Client {
@@ -28,6 +29,7 @@ impl Client {
         Client {
             req: rest::Client::new(token),
             message_handlers: Vec::new(),
+            next_batch: String::new(),
         }
     }
 
@@ -36,21 +38,8 @@ impl Client {
     }
 
     pub async fn run(&mut self) -> Result<()> {
-        /*
-        let mut arg = String::from(&self.homeserver);
-        arg.push_str("/_matrix/client/r0/sync");
-
-        let res: raw_data::Sync = self
-            .req
-            .get(&arg)
-            .header("Authorization", "Bearer ".to_owned() + &self.token)
-            .send()
-            .await?
-            .json()
-            .await?;
-
-        println!("{:?}", res);
-        */
+        let res = self.req.sync(&self.next_batch).await?;
+        //dbg!(res);
         Ok(())
     }
 }

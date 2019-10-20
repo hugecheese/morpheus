@@ -124,6 +124,9 @@ pub enum Content {
         allow: Option<Vec<String>>,
         deny: Option<Vec<String>>,
     },
+
+    #[serde(rename = "m.reaction")] // TODO: UNDOCUMENTED IN SPEC
+    Reaction { relates_to: Option<RelatesTo> }, // TODO: UNDOCUMENTED IN SPEC
     #[serde(rename = "m.room.related_groups")] // TODO: UNDOCUMENTED IN SPEC
     RelatedGroups { groups: Option<Vec<String>> }, // TODO: UNDOCUMENTED IN SPEC
 
@@ -137,6 +140,14 @@ pub enum Content {
     _DELETEME4(serde_json::Value), // TODO DELETE ME
     #[serde(rename = "m.room.bot.options")]
     _DELETEME5(serde_json::Value), // TODO DELETE ME
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct RelatesTo {
+    event_id: String,
+    key: String,
+    rel_type: String,
 }
 
 #[derive(Deserialize, Debug)]
