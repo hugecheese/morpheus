@@ -15,6 +15,8 @@
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
 #![allow(dead_code)]
+#![allow(clippy::large_enum_variant)]
+#![allow(clippy::module_inception)]
 #![feature(decl_macro)]
 #![feature(type_alias_impl_trait)]
 
