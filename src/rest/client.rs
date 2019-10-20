@@ -14,20 +14,21 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
-use crate::{endpoints, raw};
+use super::events;
+use crate::endpoints;
 use reqwest::Method;
 use std::future::Future;
 
-pub struct RestClient {
+pub struct Client {
     auth: String,
     req: reqwest::Client,
 }
 
 pub type Resp = impl Future<Output = reqwest::Result<reqwest::Response>>;
 
-impl RestClient {
-    pub fn new(token: &str) -> RestClient {
-        RestClient {
+impl Client {
+    pub fn new(token: &str) -> Client {
+        Client {
             auth: "Bearer ".to_owned() + token,
             req: reqwest::Client::new(),
         }
@@ -48,7 +49,7 @@ impl RestClient {
         self.request(Method::POST, url)
     }
 
-    pub async fn sync(&self) -> crate::Result<raw::Sync> {
+    pub async fn sync(&self) -> crate::Result<events::Sync> {
         /*
         let b = self.get(endpoints::SYNC).await?.bytes().await?;
         let obj: serde_json::Value = serde_json::from_slice(&b)?;

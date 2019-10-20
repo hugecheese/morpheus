@@ -14,20 +14,9 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
-#![allow(dead_code)]
-#![feature(decl_macro)]
-#![feature(type_alias_impl_trait)]
+use super::User;
 
-mod client;
-mod endpoints;
-mod rest;
-
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
-#[tokio::main]
-async fn main() -> Result<()> {
-    let c = rest::Client::new(env!("MATRIX_TOKEN"));
-    println!("{:?}", c.sync().await);
-
-    Ok(())
+pub struct Message {
+    pub content: String,
+    pub author: User,
 }

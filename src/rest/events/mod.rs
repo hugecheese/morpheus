@@ -14,9 +14,6 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
-use crate::user::User;
+mod events;
 
-pub struct Message {
-    pub content: String,
-    pub author: User,
-}
+pub use self::events::Sync;

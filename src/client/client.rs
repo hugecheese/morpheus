@@ -14,19 +14,19 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
-use crate::message::Message;
-use crate::rest_client::RestClient;
+use super::Message;
+use crate::rest;
 use crate::Result;
 
 pub struct Client {
-    rest: RestClient,
+    req: rest::Client,
     message_handlers: Vec<fn(Message)>,
 }
 
 impl Client {
     pub fn new(token: &str) -> Client {
         Client {
-            rest: RestClient::new(token),
+            req: rest::Client::new(token),
             message_handlers: Vec::new(),
         }
     }
@@ -41,7 +41,7 @@ impl Client {
         arg.push_str("/_matrix/client/r0/sync");
 
         let res: raw_data::Sync = self
-            .rest
+            .req
             .get(&arg)
             .header("Authorization", "Bearer ".to_owned() + &self.token)
             .send()
