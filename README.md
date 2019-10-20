@@ -32,6 +32,15 @@ WIP completely broken client for Matrix.
 - Inconsistent specification of `m.receipt`. Normally, any maps of ids to objects are specified as `{string: object}`, but for `m.receipt`, we oddly specify the name of the key as the type of key (which is not the name). Unclear and inconsistent with all other map fields.
 - `m.receipt` overall has a very strange and non-obvious layout, and all the fields are optional for no apparent reason.
 - Inconsistent naming: `ts` vs `timestamp`
+- `m.room.avatar` event but also `avatar_url`? why not just one of the two
+- `m.room.third_party_invite::PublicKeys` should be renamed to `PublicKey`. It only has one key.
+- Deprecate `m.room.third_party_invite::public_key`. Also, why **Required.** if it only exists for backwards compat?
+- Undocumented `m.room.related_groups`
+- Undocumented `m.room.plumbing`
+- Question: why is so much metadata preserved after redaction? Why isn't it just marked as some generic "redacted" event?
+- The `UnsignedData` inside `State Event` can contain the `prev_content` field. However, it is not documented as such. Only the `/_matrix/client/r0/pushers/set` endpoint documents `UnsignedData` to contain a `prev_content` field.
+- `EventContent` has an `unsigned` field, and `UnsignedData` has a `prev_content` field. Very annoying to implement in a strongly typed language.
+- The spec states that `Timeline` has an array of `RoomEvent`'s, however, many of these events contain the `state_key` field, which are only present in `State Event`'s. Either the spec is wrong or synapse.
 
 # License
 Morpheus is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License, version 3, as published by the Free Software Foundation.
