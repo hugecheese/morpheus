@@ -50,6 +50,7 @@ impl Client {
 
                 for handler in &self.message_handlers {
                     handler(&Message {
+                        // TODO: is a clone necessary?
                         content: msg.clone()?.into(),
                         author: User {},
                     });
