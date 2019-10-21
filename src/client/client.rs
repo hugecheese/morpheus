@@ -40,7 +40,6 @@ impl Client {
     }
 
     fn handle_sync(&mut self, sync: rest::events::Sync) -> Option<()> {
-        // TODO: fix for this absurd as_ref spam
         self.next_batch = sync.next_batch;
 
         for (id, room) in sync.rooms?.join? {
