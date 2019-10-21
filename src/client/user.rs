@@ -20,10 +20,10 @@ pub struct User {
 
 impl User {
     // TODO impl
-    fn kick(&self) {}
+    pub fn kick(&self) {}
 
     // TODO impl
-    fn ban(&self, reason: &str) {}
+    pub fn ban(&self, reason: &str) {}
 
     // TODO the rest of the goods hehe
 }
