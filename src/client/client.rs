@@ -39,19 +39,21 @@ impl Client {
         self.message_handlers.push(handler);
     }
 
-    fn handle_sync(&mut self, sync: &rest::events::Sync) -> Option<()> {
+    fn handle_sync(&mut self, sync: rest::events::Sync) -> Option<()> {
         // TODO: fix for this absurd as_ref spam
-        for (id, room) in sync.rooms.as_ref()?.join.as_ref()? {
-            for event in room.timeline.as_ref()?.events.as_ref()? {
-                let msg = match &event.content {
+        self.next_batch = sync.next_batch;
+
+        for (id, room) in sync.rooms?.join? {
+            for event in room.timeline?.events? {
+                let msg = match event.content {
                     Content::Message { body, .. } => body,
                     _ => continue,
-                };
+                }?;
 
                 for handler in &self.message_handlers {
                     handler(&Message {
-                        // TODO: is a clone necessary?
-                        content: msg.clone()?.into(),
+                        // TODO: avoid clone somehow?
+                        content: msg.clone(),
                         author: User {},
                     });
                 }
@@ -67,8 +69,7 @@ impl Client {
 
         loop {
             let res = self.req.sync(&self.next_batch).await?;
-            self.handle_sync(&res);
-            self.next_batch = res.next_batch;
+            self.handle_sync(res);
         }
     }
 }
