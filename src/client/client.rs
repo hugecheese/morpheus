@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
-use super::{Message, User};
+use super::{Message, Room, User};
 use crate::rest;
 // TODO: make better-er
 use crate::rest::events::room::Content;
@@ -27,8 +27,8 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(token: &str) -> Client {
-        Client {
+    pub fn new(token: &str) -> Self {
+        Self {
             req: rest::Client::new(token),
             message_handlers: Vec::new(),
             next_batch: String::new(),
@@ -45,15 +45,16 @@ impl Client {
         for (id, room) in sync.rooms?.join? {
             for event in room.timeline?.events? {
                 let msg = match event.content {
-                    Content::Message { body, .. } => body,
+                    Content::Message { body, .. } => body?,
                     _ => continue,
-                }?;
+                };
 
                 for handler in &self.message_handlers {
                     handler(&Message {
                         // TODO: avoid clone somehow?
                         content: msg.clone(),
                         author: User {},
+                        room: Room { id: id.clone() },
                     });
                 }
             }
@@ -63,12 +64,12 @@ impl Client {
     }
 
     pub async fn run(&mut self) -> Result<()> {
-        let res = self.req.sync(&self.next_batch).await?;
+        let res = self.req.sync().send().await?;
         self.next_batch = res.next_batch;
 
         loop {
-            let res = self.req.sync(&self.next_batch).await?;
-            self.handle_sync(res);
+            let res = self.req.sync().since(&self.next_batch);
+            self.handle_sync(res.send().await?);
         }
     }
 }

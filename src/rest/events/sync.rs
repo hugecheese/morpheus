@@ -97,6 +97,9 @@ pub struct StrippedState {
     #[serde(rename = "type")]
     pub type_str: String,
     pub sender: String,
+    pub event_id: Option<String>, // TODO: UNDOCUMENTED IN SPEC
+    pub origin_server_ts: Option<u64>, // TODO: UNDOCUMENTED IN SPEC
+    pub unsigned: Option<serde_json::Value>, // TODO: UNDOCUMENTED IN SPEC
 }
 
 #[derive(Deserialize, Debug)]
@@ -154,7 +157,7 @@ pub struct ToDevice {
 #[derive(Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct ToDeviceEvent {
-    pub content: Option<EventContent>,
+    pub content: Option<serde_json::Value>, // TODO: actually implement fields
     #[serde(rename = "type")]
     pub type_str: Option<String>,
     pub sender: Option<String>,

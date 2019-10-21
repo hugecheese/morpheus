@@ -14,12 +14,6 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
-mod client;
-mod message;
-mod room;
-mod user;
-
-pub use self::client::Client;
-pub use self::message::Message;
-pub use self::room::Room;
-pub use self::user::User;
+pub struct Room {
+    pub id: String,
+}

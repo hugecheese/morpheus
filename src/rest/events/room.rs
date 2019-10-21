@@ -31,8 +31,10 @@ pub struct Event {
     pub unsigned: Option<UnsignedData>,
     pub state_key: Option<String>, // TODO: UNDOCUMENTED IN SPEC
     pub redacts: Option<String>,   // TODO: UNDOCUMENTED IN SPEC
+    pub origin_server_ipts: Option<u64>, // TODO: UNDOCUMENTED IN SPEC
 }
 
+// TODO: define all structs outside of enum, easier on matching and on eyes
 #[derive(Deserialize, Debug)]
 #[serde(tag = "type", content = "content")]
 pub enum Content {

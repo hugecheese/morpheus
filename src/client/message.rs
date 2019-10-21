@@ -14,9 +14,11 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
+use super::Room;
 use super::User;
 
 pub struct Message {
     pub content: String,
     pub author: User,
+    pub room: Room,
 }

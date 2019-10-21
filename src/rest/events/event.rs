@@ -86,7 +86,7 @@ pub struct Receipt {
 pub struct EventContent {
     pub avatar_url: Option<String>,
     pub displayname: Option<String>,
-    pub membership: Membership,
+    pub membership: Option<Membership>, // TODO: this shouldn't be optional
     pub is_direct: Option<bool>,
     pub third_party_invite: Option<Invite>,
     pub unsigned: Option<UnsignedData>,
@@ -98,6 +98,7 @@ pub struct EventContent {
     pub third_party_signed: Option<serde_json::Value>, // TODO: UNDOCUMENTED IN SPEC
     #[serde(rename = "")] // TODO: UNDOCUMENTED
     pub deleteme2: Option<serde_json::Value>, // TODO: UNDOCUMENTED IN SPEC
+    pub join_rule: Option<serde_json::Value>, // TODO: UNDOCUMENTED IN SPEC
 }
 
 #[derive(Deserialize, Debug)]
@@ -114,7 +115,7 @@ pub enum Membership {
 #[serde(deny_unknown_fields)]
 pub struct Invite {
     pub display_name: String,
-    pub signed: Option<serde_json::Value>, // TODO: REMOVE ME
+    pub signed: Option<serde_json::Value>, // TODO: IMPLEMENT ME
 }
 
 #[derive(Deserialize, Debug)]

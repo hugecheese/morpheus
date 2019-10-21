@@ -14,9 +14,10 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
-use super::events;
+use super::reqs::SyncBuilder;
 use crate::endpoints;
 use reqwest::{Method, RequestBuilder};
+use serde::de::DeserializeOwned;
 
 pub struct Client {
     auth: String,
@@ -24,8 +25,8 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(token: &str) -> Client {
-        Client {
+    pub fn new(token: &str) -> Self {
+        Self {
             auth: "Bearer ".to_owned() + token,
             req: reqwest::Client::new(),
         }
@@ -45,21 +46,21 @@ impl Client {
         self.request(Method::POST, url)
     }
 
-    // TODO: rewrite this function, it's gross omegalul
-    pub async fn sync(&self, next_batch: &str) -> crate::Result<events::Sync> {
-        let raw = self
-            .get(&endpoints::SYNC)
-            // TODO: handle empty next_batch case
-            .query(&[("since", &next_batch)])
-            .send()
-            .await?
-            .bytes()
-            .await?;
+    pub fn sync(&self) -> SyncBuilder {
+        SyncBuilder::new(self.get(&endpoints::SYNC))
+    }
 
+    // TODO: remove me when more stable
+    // TODO: DRAGONS BEWARE
+    pub async fn debug_request<T>(req: RequestBuilder) -> crate::Result<T>
+    where
+        T: DeserializeOwned + Sized,
+    {
+        let raw = req.send().await?.bytes().await?;
         let obj: serde_json::Value = serde_json::from_slice(&raw)?;
         let pretty = serde_json::to_string_pretty(&obj)?;
-        let res: crate::Result<events::Sync> = serde_json::from_str(&pretty)
-            .or_else(|err| Err(Box::new(err) as Box<dyn std::error::Error>));
+        let res = serde_json::from_str::<T>(&pretty);
+
         match res {
             Ok(val) => Ok(val),
             Err(e) => {
@@ -67,7 +68,7 @@ impl Client {
                 let filename = format!("{}.json", r);
                 println!("JSON ERROR: {}\n\nDUMPING FILE: {}", e, filename);
                 std::fs::write(&filename, &pretty)?;
-                Err(e)
+                Err(Box::new(e))
             }
         }
     }

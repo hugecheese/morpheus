@@ -14,7 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
-pub mod client;
+mod client;
 pub mod events;
+pub mod reqs;
 
 pub use self::client::Client;
