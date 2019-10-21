@@ -53,9 +53,7 @@ impl Client {
             format!("{}?since={}", endpoints::SYNC, next_batch)
         };
 
-        println!("{}", url);
         let b = self.get(&url).send().await?.bytes().await?;
-
         let obj: serde_json::Value = serde_json::from_slice(&b)?;
         let pretty = serde_json::to_string_pretty(&obj)?;
         let res: crate::Result<events::Sync> = serde_json::from_str(&pretty)

@@ -15,7 +15,7 @@
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
 pub struct User {
-    id: String,
+    //id: String,
 }
 
 impl User {
@@ -23,7 +23,7 @@ impl User {
     fn kick(&self) {}
 
     // TODO impl
-    fn ban(&self) {}
+    fn ban(&self, reason: &str) {}
 
     // TODO the rest of the goods hehe
 }

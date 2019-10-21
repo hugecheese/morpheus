@@ -29,7 +29,10 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 #[tokio::main]
 async fn main() -> Result<()> {
     let mut c = client::Client::new(env!("MATRIX_TOKEN"));
-    c.run().await?;
 
-    Ok(())
+    c.on_message(|msg| {
+        println!("{}", msg.content);
+    });
+
+    c.run().await
 }

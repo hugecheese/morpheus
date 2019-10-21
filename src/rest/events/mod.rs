@@ -18,7 +18,7 @@ mod encryption;
 mod event;
 mod message;
 mod notifs;
-mod room;
+pub mod room;
 mod sync;
 
 // TODO: eventually remove all the deny_unknown_fields
