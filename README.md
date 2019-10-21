@@ -1,5 +1,20 @@
 # Morpheus
-WIP completely broken client for Matrix.
+A clean library for the Matrix open standard. Mostly everything is unimplemented or broken.
+
+```rust
+#[tokio::main]
+async fn main() -> Result<()> {
+    let mut client = morpheus::Client::new("your_token");
+
+    client.on_message(|msg| {
+        if msg.content == "I love facebook" {
+            msg.author.ban("Not today, satan.");
+        }
+    });
+
+    client.run().await
+}
+```
 
 # Matrix Spec TODO
 - Fix `displayname` vs `display_name`
