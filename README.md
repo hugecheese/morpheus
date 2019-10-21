@@ -16,6 +16,10 @@ async fn main() -> Result<()> {
 }
 ```
 
+# Morpheus TODO
+- Flexible way to handle parameters (or absense thereof) in rest client
+- Add caching of rooms and members to client
+
 # Matrix Spec TODO
 - Fix `displayname` vs `display_name`
 - Make most booleans required (`false` is usually correct when field is absent)
@@ -51,7 +55,7 @@ async fn main() -> Result<()> {
 - Deprecate `m.room.third_party_invite::public_key`. Also, why **Required.** if it only exists for backwards compat?
 - Question: why is so much metadata preserved after redaction? Why isn't it just marked as some generic "redacted" event?
 - The `UnsignedData` inside `State Event` can contain the `prev_content` field. However, it is not documented as such. Only the `/_matrix/client/r0/pushers/set` endpoint documents `UnsignedData` to contain a `prev_content` field.
-- `EventContent` has an `unsigned` field, and `UnsignedData` has a `prev_content` field. These two types are infinitely recursive. Very annoying to implement in a strongly typed language.
+- `EventContent` has an `unsigned` field, and `UnsignedData` has a `prev_content` field. These two types are infinitely recursive. Difficult to implement in a strongly typed language.
 - The spec states that `Timeline` has an array of `RoomEvent`'s, however, many of these events contain the `state_key` field, which are only present in `State Event`'s. Either the spec is wrong or synapse.
 - `m.reaction` is a room event but doesn't have the `m.room` suffix?
 - Many undocumented `m.` reserved fields
