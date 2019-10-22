@@ -15,5 +15,7 @@
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
 mod sync;
+mod send_message;
 
 pub use self::sync::SyncBuilder;
+pub use self::send_message::SendMessageBuilder;

@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
-use crate::rest::{events, Client};
-use reqwest::RequestBuilder;
+use self::rest::{events, endpoints};
+use crate::rest;
 use serde::Serialize;
 
 #[derive(Serialize, Default)]
@@ -26,16 +26,16 @@ pub struct Sync {
     // TODO: remaining fields
 }
 
-pub struct SyncBuilder {
-    req: RequestBuilder,
-    sync: self::Sync,
+pub struct SyncBuilder<'a> {
+    req: &'a rest::Client,
+    value: self::Sync,
 }
 
-impl SyncBuilder {
-    pub fn new(req: RequestBuilder) -> Self {
+impl<'a> SyncBuilder<'a> {
+    pub fn new(req: &'a rest::Client) -> Self {
         Self {
             req,
-            sync: Default::default(),
+            value: Default::default(),
         }
     }
 
@@ -43,7 +43,7 @@ impl SyncBuilder {
     where
         T: Into<String>,
     {
-        self.sync.filter = Some(input.into());
+        self.value.filter = Some(input.into());
         self
     }
 
@@ -51,17 +51,17 @@ impl SyncBuilder {
     where
         T: Into<String>,
     {
-        self.sync.since = Some(input.into());
+        self.value.since = Some(input.into());
         self
     }
 
     pub fn full_state<T>(mut self, input: bool) -> Self {
-        self.sync.full_state = Some(input);
+        self.value.full_state = Some(input);
         self
     }
 
     pub async fn send(self) -> crate::Result<events::Sync> {
-        let builder = self.req.query(&self.sync);
-        Client::debug_request(builder).await
+        let builder = self.req.get(endpoints::sync!()).query(&self.value);
+        rest::Client::debug_request(builder).await
     }
 }

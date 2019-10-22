@@ -19,20 +19,25 @@
 #![allow(clippy::module_inception)]
 #![feature(decl_macro)]
 #![feature(type_alias_impl_trait)]
+#![feature(async_closure)]
 
 mod client;
-mod endpoints;
 mod rest;
+
+pub use client::Client;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut c = client::Client::new(env!("MATRIX_TOKEN"));
+    let mut c = Client::new(env!("MATRIX_TOKEN"));
 
-    c.on_message(|msg| {
-        println!("{}", msg.content);
-    });
+    c.on_message(|msg| Box::pin(async move {
+        if msg.content.contains("facebook") {
+            msg.reply("begone, thot!").await?;
+        }
+        Ok(())
+    }));
 
     c.run().await
 }

@@ -1,16 +1,16 @@
 # Morpheus
-A clean library for the Matrix open standard. Mostly everything is unimplemented or broken.
+A clean library for the Matrix open standard. Sending and receiving messages seems to work, and basically the entirety of the `/sync` event is handled, but everything else is uimplemented.
 
 ```rust
 #[tokio::main]
 async fn main() -> Result<()> {
     let mut client = morpheus::Client::new("your_token");
 
-    client.on_message(|msg| {
+    client.on_message(|msg| async move Box::pin({
         if msg.content == "I love facebook" {
-            msg.author.ban("Not today, satan.");
+            msg.reply("Begone, Thot").await;
         }
-    });
+    }));
 
     client.run().await
 }
@@ -18,6 +18,8 @@ async fn main() -> Result<()> {
 
 # Morpheus TODO
 - Flexible way to handle parameters (or absense thereof) in rest client
+- Clean way of handling all endpoints without repetition (macros?)
+- `static` lifetime of tokens and other goods for easier thread management
 - Add caching of rooms and members to client
 
 # Matrix Spec TODO

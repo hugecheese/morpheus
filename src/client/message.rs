@@ -14,11 +14,19 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
-use super::Room;
-use super::User;
+use super::{Room, User, InnerClient};
+use std::rc::Rc;
 
 pub struct Message {
     pub content: String,
     pub author: User,
     pub room: Room,
+    pub client: Rc<InnerClient>,
+}
+
+impl Message {
+    pub async fn reply(&self, content: &str) -> crate::Result<()> {
+        self.client.send_message(&self.room.id, content).await?;
+        Ok(())
+    }
 }

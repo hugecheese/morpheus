@@ -23,7 +23,7 @@ impl User {
     pub fn kick(&self) {}
 
     // TODO impl
-    pub fn ban(&self, reason: &str) {}
+    pub fn ban(&self, _reason: &str) {}
 
     // TODO the rest of the goods hehe
 }

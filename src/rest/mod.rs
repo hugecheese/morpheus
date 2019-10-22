@@ -15,6 +15,7 @@
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
 mod client;
+mod endpoints;
 pub mod events;
 pub mod reqs;
 

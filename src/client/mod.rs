@@ -20,6 +20,8 @@ mod room;
 mod user;
 
 pub use self::client::Client;
+// TODO: shit name
+pub use self::client::InnerClient;
 pub use self::message::Message;
 pub use self::room::Room;
 pub use self::user::User;

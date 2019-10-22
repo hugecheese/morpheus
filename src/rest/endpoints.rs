@@ -14,8 +14,6 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
-
-// TODO: replace with strings when const fn is better
 macro homeserver() {
     "https://matrix.org"
 }
@@ -24,4 +22,10 @@ macro api() {
     concat!(homeserver!(), "/_matrix/client/r0/")
 }
 
-pub const SYNC: &str = concat!(api!(), "sync");
+pub macro sync() {
+    concat!(api!(), "sync")
+}
+
+pub macro send() {
+    concat!(api!(), "rooms/{}/send/{}/{}")
+}

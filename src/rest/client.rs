@@ -14,8 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License,
  * version 3, along with Morpheus. If not, see <https://www.gnu.org/licenses/>.
  */
-use super::reqs::SyncBuilder;
-use crate::endpoints;
+use super::reqs::{SendMessageBuilder, SyncBuilder};
 use reqwest::{Method, RequestBuilder};
 use serde::de::DeserializeOwned;
 
@@ -38,16 +37,24 @@ impl Client {
             .header("Authorization", &self.auth)
     }
 
-    fn get(&self, url: &str) -> RequestBuilder {
+    pub fn get(&self, url: &str) -> RequestBuilder {
         self.request(Method::GET, url)
     }
 
-    fn post(&self, url: &str) -> RequestBuilder {
+    pub fn post(&self, url: &str) -> RequestBuilder {
         self.request(Method::POST, url)
     }
 
+    pub fn put(&self, url: &str) -> RequestBuilder {
+        self.request(Method::PUT, url)
+    }
+
     pub fn sync(&self) -> SyncBuilder {
-        SyncBuilder::new(self.get(&endpoints::SYNC))
+        SyncBuilder::new(&self)
+    }
+
+    pub fn send_message(&self) -> SendMessageBuilder {
+        SendMessageBuilder::new(&self)
     }
 
     // TODO: remove me when more stable

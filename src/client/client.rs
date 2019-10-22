@@ -19,27 +19,50 @@ use crate::rest;
 // TODO: make better-er
 use crate::rest::events::room::Content;
 use crate::Result;
+use std::pin::Pin;
+use std::rc::Rc;
+
+type Future = Pin<Box<dyn std::future::Future<Output = Result<()>>>>;
+
+pub struct InnerClient {
+    pub req: rest::Client,
+}
+
+// TODO: innerclient??? this is DISGUSTING. REFACTOR!!!
+impl InnerClient {
+    // TODO: make it return the actual type
+    pub async fn send_message(
+        &self,
+        room_id: &str,
+        content: &str,
+    ) -> crate::Result<()> {
+        self.req.send_message().body(content).send(room_id).await?;
+        Ok(())
+    }
+}
 
 pub struct Client {
-    req: rest::Client,
-    message_handlers: Vec<fn(&Message)>,
+    message_handlers: Vec<fn(Message) -> Future>,
     next_batch: String,
+    data: Rc<self::InnerClient>,
 }
 
 impl Client {
     pub fn new(token: &str) -> Self {
         Self {
-            req: rest::Client::new(token),
+            data: Rc::new(self::InnerClient {
+                req: rest::Client::new(token),
+            }),
             message_handlers: Vec::new(),
             next_batch: String::new(),
         }
     }
 
-    pub fn on_message(&mut self, handler: fn(&Message)) {
+    pub fn on_message(&mut self, handler: fn(Message) -> Future) {
         self.message_handlers.push(handler);
     }
 
-    fn handle_sync(&mut self, sync: rest::events::Sync) -> Option<()> {
+    async fn handle_sync(&mut self, sync: rest::events::Sync) -> Option<()> {
         self.next_batch = sync.next_batch;
 
         for (id, room) in sync.rooms?.join? {
@@ -50,12 +73,23 @@ impl Client {
                 };
 
                 for handler in &self.message_handlers {
-                    handler(&Message {
+                    // TODO: this is super gross
+                    let res = handler(Message {
                         // TODO: avoid clone somehow?
                         content: msg.clone(),
                         author: User {},
                         room: Room { id: id.clone() },
-                    });
+                        client: Rc::clone(&self.data),
+                    })
+                    .await;
+
+                    // TODO: this is also super gross
+                    match res {
+                        Ok(_) => (),
+                        Err(e) => {
+                            dbg!(&e);
+                        }
+                    }
                 }
             }
         }
@@ -64,12 +98,13 @@ impl Client {
     }
 
     pub async fn run(&mut self) -> Result<()> {
-        let res = self.req.sync().send().await?;
+        let res = self.data.req.sync().send().await?;
         self.next_batch = res.next_batch;
 
         loop {
-            let res = self.req.sync().since(&self.next_batch);
-            self.handle_sync(res.send().await?);
+            let res =
+                self.data.req.sync().since(&self.next_batch).send().await?;
+            self.handle_sync(res).await;
         }
     }
 }
