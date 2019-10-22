@@ -60,12 +60,7 @@ pub enum OtherEventData {
     #[serde(rename = "m.room.redaction")]
     Redaction { reason: Option<String> },
     #[serde(rename = "m.widgets")] // TODO: UNDOCUMENTED IN SPEC
-    Widgets { // TODO: UNDOCUMENTED IN SPEC
-        name: Option<String>, // TODO: UNDOCUMENTED IN SPEC
-        url: Option<String>, // TODO: UNDOCUMENTED IN SPEC
-        #[serde(rename = "type")] // TODO: UNDOCUMENTED IN SPEC
-        type_str: Option<String>, // TODO: UNDOCUMENTED IN SPEC
-    }, // TODO: UNDOCUMENTED IN SPEC
+    Widgets(serde_json::Value), // TODO: UNDOCUMENTED IN SPEC
 
     // TODO: remove dummies after event probing is complete
     #[serde(rename = "im.vector.web.settings")]
